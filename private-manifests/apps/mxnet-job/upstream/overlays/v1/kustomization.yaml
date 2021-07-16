@@ -15,3 +15,24 @@ resources:
 
 patchesStrategicMerge:
   - deployment.yaml
+
+images:
+- name: kubeflow/mxnet-operator
+  newName: $(airgapRegistry)kubeflow/mxnet-operator
+
+configMapGenerator:
+- name: mxnet-operator-parameters
+  envs:
+  - params.env
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- name: airgapRegistry
+  objref:
+    kind: ConfigMap
+    name: mxnet-operator-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.AIRGAP_REGISTRY
+configurations:
+- params.yaml
