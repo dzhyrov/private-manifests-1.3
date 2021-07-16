@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: knative-eventing
+resources:
+- cluster-role.yaml
+- cluster-role-binding.yaml
+- secret.yaml
+- config-map.yaml
+- deployment.yaml
+- service-account.yaml
+- service.yaml
+- webhook-configuration.yaml
+commonLabels:
+  kustomize.component: knative
+images:
+- name: gcr.io/knative-releases/knative.dev/eventing/cmd/controller
+  newName: $(airgapRegistry)gcr.io/knative-releases/knative.dev/eventing/cmd/controller
+  newTag: v0.14.2
+- name: gcr.io/knative-releases/knative.dev/eventing/cmd/channel_broker
+  newName: $(airgapRegistry)daniilzhyrov/knative-channel_broker
+  newTag: latest
+- name: gcr.io/knative-releases/knative.dev/eventing/cmd/webhook
+  newName: $(airgapRegistry)gcr.io/knative-releases/knative.dev/eventing/cmd/webhook
+  newTag: v0.14.2
+- name: gcr.io/knative-releases/knative.dev/eventing/cmd/in_memory/channel_controller
+  newName: $(airgapRegistry)daniilzhyrov/knative-channel_controller
+  newTag: latest
+- name: gcr.io/knative-releases/knative.dev/eventing/cmd/in_memory/channel_dispatcher
+  newName: $(airgapRegistry)daniilzhyrov/knative-channel_dispatcher
+  newTag: latest
+
+configMapGenerator:
+- name: knative-eventing-parameters
+  envs:
+  - params.env
+generatorOptions:
+  disableNameSuffixHash: true
+vars:
+- name: airgapRegistry
+  objref:
+    kind: ConfigMap
+    name: knative-eventing-parameters
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.AIRGAP_REGISTRY
+configurations:
+- params.yaml
